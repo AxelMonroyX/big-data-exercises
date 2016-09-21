@@ -10,8 +10,11 @@ import org.apache.mahout.cf.taste.neighborhood.UserNeighborhood;
 import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 
 /**
@@ -26,29 +29,57 @@ public class MovieRecommender {
 
     public MovieRecommender(String pathOfSourceTXT) throws IOException, TasteException {
 
-        DataModel dataModel = new FileDataModel(new File(convertTxtToCSV(pathOfSourceTXT)));
+        DataModel dataModel = new FileDataModel(new File(createDataModelFromGZ(pathOfSourceTXT)));
         UserSimilarity similarity = new PearsonCorrelationSimilarity(dataModel);
         UserNeighborhood neighborhood = new ThresholdUserNeighborhood(0.1, similarity, dataModel);
         this.recommender = new GenericUserBasedRecommender(dataModel, neighborhood, similarity);
     }
 
-    private String convertTxtToCSV(String pathOfSourceTXT) {
-
-        if (!file_CSV_exist){
-            // Lee TXT
-//            Convierte
-        }else{
+    private String createDataModelFromGZ(String pathOfSourceGZ) {
+        String pathOfSourceCSV = null;
+        String pathOfSourceTXT = "/home/axel/code/big-data-exercises/files/movies.txt";
+        if (!file_exist(pathOfSourceGZ)) {
+            unGunzipFile(pathOfSourceGZ, pathOfSourceTXT);
+            convert_TXT_to_CSV(pathOfSourceTXT);
+        } else {
 
 
         }
 
 
 
-        String pathOfSourceCSV;
-
-
 
         return pathOfSourceCSV;
+    }
+
+    private void convert_TXT_to_CSV(String pathOfSourceTXT) {
+    }
+
+    private boolean file_exist(String pathOfSourceGZ) {
+        return false;
+
+    }
+
+    private void unGunzipFile(String compressedFile, String decompressedFile) {
+
+        byte[] buffer = new byte[1024];
+
+        try {
+            FileInputStream fileIn = new FileInputStream(compressedFile);
+            GZIPInputStream gZIPInputStream = new GZIPInputStream(fileIn);
+            FileOutputStream fileOutputStream = new FileOutputStream(decompressedFile);
+            int bytes_read;
+            while ((bytes_read = gZIPInputStream.read(buffer)) > 0) {
+                fileOutputStream.write(buffer, 0, bytes_read);
+            }
+            gZIPInputStream.close();
+            fileOutputStream.close();
+
+            System.out.println("The file was decompressed successfully!");
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     public int getTotalReviews() {
@@ -56,7 +87,11 @@ public class MovieRecommender {
     }
 
     public int getTotalProducts() {
-        recommender.getDataModel().getNumItems()
+        try {
+            recommender.getDataModel().getNumItems();
+        } catch (TasteException e) {
+            e.printStackTrace();
+        }
 
         return totalProducts;
     }
@@ -68,7 +103,11 @@ public class MovieRecommender {
     public List<String> getRecommendationsForUser(String user) {
 //        recommender.getDataModel().getItemIDs().
 
-        recommender.recommend(Long.parseLong(user), 4);
+        try {
+            recommender.recommend(Long.parseLong(user), 4);
+        } catch (TasteException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 }
