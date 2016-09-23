@@ -51,21 +51,60 @@ public class MovieRecommender {
 
     private void createCSV(String nameOfFileGZ) throws IOException {
 //        String infile = "file.gzip";
-        GZIPInputStream in = new GZIPInputStream(new FileInputStream(pathofFiles+nameOfFileGZ));
+        GZIPInputStream in = new GZIPInputStream(new FileInputStream(pathofFiles + nameOfFileGZ));
 
         Reader decoder = new InputStreamReader(in);
         BufferedReader br = new BufferedReader(decoder);
 
-        FileOutputStream outputStream = new FileOutputStream(pathofFiles+nameOfFileGZ+".csv");
+        FileOutputStream outputStream = new FileOutputStream(pathofFiles + nameOfFileGZ + ".csv");
 
-        int contador=0;
+        int contador = 0;
         String line;
-        while (contador< 500 &(line = br.readLine()) != null) {
+        String product = "";
+        String finalline = "";
+        int allCase = 0;
+        while ( (line = br.readLine()) != null) {
             System.out.println(line);
-            outputStream.write(line.getBytes());
+            if (line.startsWith("product/productId:")) {
+                product = line;
+
+                allCase++;
+                line=br.readLine();
+            }
+            if (line.startsWith("review/userId:")) {
+                finalline += line.substring(15);
+                finalline += ("" + COMMA_DELIMITER);
+                allCase++;
+                line=br.readLine();
+
+            }
+            if (!product.equals("")) {
+
+                finalline += product.substring(19);
+                finalline += ("" + COMMA_DELIMITER);
+                product="";
+            }
+//            outputStream.write(("" + COMMA_DELIMITER).getBytes());
+
+            if (line.startsWith("review/score:")) {
+                finalline += line.substring(13);
+                allCase++;
+                line=br.readLine();
+                finalline+=NEW_LINE_SEPARATOR;
+             outputStream.write(finalline.getBytes());
+            }
+
+
             contador++;
+            System.out.println(contador);
+            if (contador==800){
+                break;
+            }
+
+
         }
 
+        outputStream.close();
 
     }
 
