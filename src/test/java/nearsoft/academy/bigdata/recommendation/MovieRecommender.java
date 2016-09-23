@@ -20,21 +20,21 @@ import java.util.zip.GZIPInputStream;
 
 /**
  * Created by axel on 19/09/16.
+ * github.com/AxelMonroyX
  */
-public class MovieRecommender {
+class MovieRecommender {
     private static final char NEW_LINE_SEPARATOR = '\n';
     private final GenericUserBasedRecommender recommender;
 
 
     private int totalReviews;
     private int totalProducts;
-    private int totalUsers;
 
     private BiMap<String, Integer> users = HashBiMap.create();
     private BiMap<String, Integer> products = HashBiMap.create();
     private String pathofFiles = "/home/axel/code/big-data-exercises/files/";
 
-    public MovieRecommender(String nameOfFileGZ) throws IOException, TasteException {
+    MovieRecommender(String nameOfFileGZ) throws IOException, TasteException {
 
 
         DataModel dataModel = new FileDataModel(new File(pathofFiles, createDataModelFromGZ(nameOfFileGZ)));
@@ -50,10 +50,7 @@ public class MovieRecommender {
         return nameOfFileGZ + ".csv";
     }
 
-    private boolean file_CSV_exist(String nameOfFileGZ) {
-        if (new File(pathofFiles + nameOfFileGZ + ".csv").exists()) return true;
-        return false;
-    }
+
 
     private void createCSV(String nameOfFileGZ) throws IOException {
         GZIPInputStream in = new GZIPInputStream(new FileInputStream(pathofFiles + nameOfFileGZ));
@@ -66,8 +63,8 @@ public class MovieRecommender {
         String line;
         String product = "";
         StringBuilder finalLine = new StringBuilder();
-        int actualUser = 0;
-        int actualProduct = 0;
+        int actualUser;
+        int actualProduct;
         try {
             while ((line = br.readLine()) != null) {
                 if (line.startsWith("product/productId:")) {
@@ -82,7 +79,7 @@ public class MovieRecommender {
                         users.put(line.substring(15), users.size() + 1);
                         actualUser = users.size();
                     }
-                    finalLine.append(actualUser + ",");
+                    finalLine.append(actualUser).append(",");
                     line = br.readLine();
 
                 }
@@ -93,13 +90,13 @@ public class MovieRecommender {
                         products.put(product.substring(19), products.size() + 1);
                         actualProduct = products.size();
                     }
-                    finalLine.append(actualProduct + ",");
+                    finalLine.append(actualProduct).append(",");
                     product = "";
                     totalProducts++;
                 }
 
                 if (line.startsWith("review/score:")) {
-                    finalLine.append(line.substring(14) + NEW_LINE_SEPARATOR);
+                    finalLine.append(line.substring(14)).append(NEW_LINE_SEPARATOR);
                     totalReviews++;
 
                 }
@@ -119,28 +116,23 @@ public class MovieRecommender {
     }
 
 
-    private boolean file_exist(String pathOfSourceGZ) {
-        return true;
-
-    }
 
 
-    public int getTotalReviews() {
+    int getTotalReviews() {
         return totalReviews;
     }
 
-    public int getTotalProducts() {
+    int getTotalProducts() {
 
         totalProducts = products.size();
         return totalProducts;
     }
 
-    public int getTotalUsers() {
-        totalUsers = users.size();
-        return totalUsers;
+    int getTotalUsers() {
+        return users.size();
     }
 
-    public List<String> getRecommendationsForUser(String user) {
+    List<String> getRecommendationsForUser(String user) {
 
 
         List<String> recommendationsForUser = new ArrayList<String>();
@@ -151,9 +143,11 @@ public class MovieRecommender {
             e.printStackTrace();
         }
         BiMap<Integer, String> itemsMapInv = this.products.inverse();
-        for (RecommendedItem recommendation : listRecommendations) {
-            int recommendationID = (int) recommendation.getItemID();
-            recommendationsForUser.add(itemsMapInv.get(recommendationID));
+        if (listRecommendations != null) {
+            for (RecommendedItem recommendation : listRecommendations) {
+                int recommendationID = (int) recommendation.getItemID();
+                recommendationsForUser.add(itemsMapInv.get(recommendationID));
+            }
         }
         return recommendationsForUser;
 
