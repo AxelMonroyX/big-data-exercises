@@ -9,10 +9,7 @@ import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.neighborhood.UserNeighborhood;
 import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
@@ -21,66 +18,63 @@ import java.util.zip.GZIPInputStream;
  * Created by axel on 19/09/16.
  */
 public class MovieRecommender {
+    private static final char COMMA_DELIMITER = ',';
+    private static final char NEW_LINE_SEPARATOR = '\n';
     private final GenericUserBasedRecommender recommender;
 
     private int totalReviews;
     private int totalProducts;
     private int totalUsers;
+    String pathofFiles = "/home/axel/code/big-data-exercises/files/";
 
-    public MovieRecommender(String pathOfSourceTXT) throws IOException, TasteException {
+    public MovieRecommender(String nameOfFileGZ) throws IOException, TasteException {
 
-        DataModel dataModel = new FileDataModel(new File(createDataModelFromGZ(pathOfSourceTXT)));
+
+        DataModel dataModel = new FileDataModel(new File(pathofFiles, createDataModelFromGZ(nameOfFileGZ)));
         UserSimilarity similarity = new PearsonCorrelationSimilarity(dataModel);
         UserNeighborhood neighborhood = new ThresholdUserNeighborhood(0.1, similarity, dataModel);
         this.recommender = new GenericUserBasedRecommender(dataModel, neighborhood, similarity);
     }
 
-    private String createDataModelFromGZ(String pathOfSourceGZ) {
-        String pathOfSourceCSV = null;
-        String pathOfSourceTXT = "/home/axel/code/big-data-exercises/files/movies.txt";
-        if (!file_exist(pathOfSourceGZ)) {
-            unGunzipFile(pathOfSourceGZ, pathOfSourceTXT);
-            convert_TXT_to_CSV(pathOfSourceTXT);
-        } else {
 
+    private String createDataModelFromGZ(String nameOfFileGZ) throws IOException {
 
+        if (!file_CSV_exist(nameOfFileGZ)) {
+            createCSV(nameOfFileGZ);
+        }
+        return nameOfFileGZ + ".csv";
+    }
+
+    private boolean file_CSV_exist(String nameOfFileGZ) {
+        return false;
+    }
+
+    private void createCSV(String nameOfFileGZ) throws IOException {
+//        String infile = "file.gzip";
+        GZIPInputStream in = new GZIPInputStream(new FileInputStream(pathofFiles+nameOfFileGZ));
+
+        Reader decoder = new InputStreamReader(in);
+        BufferedReader br = new BufferedReader(decoder);
+
+        FileOutputStream outputStream = new FileOutputStream(pathofFiles+nameOfFileGZ+".csv");
+
+        int contador=0;
+        String line;
+        while (contador< 500 &(line = br.readLine()) != null) {
+            System.out.println(line);
+            outputStream.write(line.getBytes());
+            contador++;
         }
 
 
-
-
-        return pathOfSourceCSV;
     }
 
-    private void convert_TXT_to_CSV(String pathOfSourceTXT) {
-    }
 
     private boolean file_exist(String pathOfSourceGZ) {
-        return false;
+        return true;
 
     }
 
-    private void unGunzipFile(String compressedFile, String decompressedFile) {
-
-        byte[] buffer = new byte[1024];
-
-        try {
-            FileInputStream fileIn = new FileInputStream(compressedFile);
-            GZIPInputStream gZIPInputStream = new GZIPInputStream(fileIn);
-            FileOutputStream fileOutputStream = new FileOutputStream(decompressedFile);
-            int bytes_read;
-            while ((bytes_read = gZIPInputStream.read(buffer)) > 0) {
-                fileOutputStream.write(buffer, 0, bytes_read);
-            }
-            gZIPInputStream.close();
-            fileOutputStream.close();
-
-            System.out.println("The file was decompressed successfully!");
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-    }
 
     public int getTotalReviews() {
         return totalReviews;
@@ -110,4 +104,5 @@ public class MovieRecommender {
         }
         return null;
     }
+
 }
